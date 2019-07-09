@@ -43,14 +43,15 @@ class _HomeState extends State<Home> {
             child: Row(
               children: <Widget>[
                 Expanded(
-                  child: TextField(
-                    controller: _toDoController,
-                    decoration: InputDecoration(
-                      labelText: "Nova Tarefa",
-                      labelStyle: TextStyle(color: Colors.blueAccent),
-                    ),
-                  ),
-                ),
+                    child: RefreshIndicator(
+                        child: TextField(
+                          controller: _toDoController,
+                          decoration: InputDecoration(
+                            labelText: "Nova Tarefa",
+                            labelStyle: TextStyle(color: Colors.blueAccent),
+                          ),
+                        ),
+                        onRefresh: _refresh)),
                 RaisedButton(
                   child: Text("ADD"),
                   color: Colors.blueAccent,
@@ -61,11 +62,13 @@ class _HomeState extends State<Home> {
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              itemBuilder: buildItem,
-              padding: EdgeInsets.only(top: 10),
-              itemCount: _toDoList.length,
-            ),
+            child: RefreshIndicator(
+                child: ListView.builder(
+                  itemBuilder: buildItem,
+                  padding: EdgeInsets.only(top: 10),
+                  itemCount: _toDoList.length,
+                ),
+                onRefresh: _refresh),
           )
         ],
       ),
@@ -112,6 +115,23 @@ class _HomeState extends State<Home> {
             Scaffold.of(context).showSnackBar(snack);
           });
         });
+  }
+
+  Future<Null> _refresh() async {
+    await Future.delayed(Duration(seconds: 1));
+    setState(() {
+      _toDoList.sort((a, b) {
+        if (a['ok'] && !b['ok'])
+          return 1;
+        else if (!a['ok'] && b['ok'])
+          return -1;
+        else
+          return 0;
+
+        _saveData();
+      });
+      return null;
+    });
   }
 
   void toDo() {
