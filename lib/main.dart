@@ -74,6 +74,7 @@ class _HomeState extends State<Home> {
 
   Widget buildItem(context, index) {
     return Dismissible(
+        key: Key(DateTime.now().millisecondsSinceEpoch.toString()),
         background: Container(
             color: Colors.red,
             child: Align(
@@ -90,7 +91,27 @@ class _HomeState extends State<Home> {
           value: _toDoList[index]["ok"],
           secondary: CircleAvatar(
               child: Icon(_toDoList[index]["ok"] ? Icons.check : Icons.error)),
-        ));
+        ),
+        onDismissed: (direction) {
+          setState(() {
+            final _lastRemoved = Map.from(_toDoList[index]);
+            final _lastRemovedIdx = index;
+            _toDoList.removeAt(index);
+            _saveData();
+            final snack = SnackBar(
+                content: Text("Tarefa \"${_lastRemoved["title"]}\" removida!"),
+                action: SnackBarAction(
+                    label: "Desfazer",
+                    onPressed: () {
+                      setState(() {
+                        _toDoList.insert(_lastRemovedIdx, _lastRemoved);
+                        _saveData();
+                      });
+                    }),
+                duration: Duration(seconds: 2));
+            Scaffold.of(context).showSnackBar(snack);
+          });
+        });
   }
 
   void toDo() {
