@@ -20,6 +20,16 @@ class _HomeState extends State<Home> {
   final _toDoController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _readData().then((data) {
+      setState(() {
+        _toDoList = json.decode(data);
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -52,21 +62,7 @@ class _HomeState extends State<Home> {
           ),
           Expanded(
             child: ListView.builder(
-              itemBuilder: (context, index) {
-                return CheckboxListTile(
-                  onChanged: (c){
-                    setState(() {
-                      _toDoList[index]['ok'] = c;
-                    });
-                  },
-                  title: Text(_toDoList[index]["title"]),
-                  value: _toDoList[index]["ok"],
-                  secondary: CircleAvatar(
-                    child: Icon(
-                        _toDoList[index]["ok"] ? Icons.check : Icons.error),
-                  ),
-                );
-              },
+              itemBuilder: buildItem,
               padding: EdgeInsets.only(top: 10),
               itemCount: _toDoList.length,
             ),
@@ -76,6 +72,27 @@ class _HomeState extends State<Home> {
     );
   }
 
+  Widget buildItem(context, index) {
+    return Dismissible(
+        background: Container(
+            color: Colors.red,
+            child: Align(
+                alignment: Alignment(-0.9, 0), child: Icon(Icons.delete))),
+        direction: DismissDirection.startToEnd,
+        child: CheckboxListTile(
+          onChanged: (c) {
+            setState(() {
+              _toDoList[index]['ok'] = c;
+              _saveData();
+            });
+          },
+          title: Text(_toDoList[index]["title"]),
+          value: _toDoList[index]["ok"],
+          secondary: CircleAvatar(
+              child: Icon(_toDoList[index]["ok"] ? Icons.check : Icons.error)),
+        ));
+  }
+
   void toDo() {
     setState(() {
       Map<String, dynamic> newTodo = Map();
@@ -83,6 +100,7 @@ class _HomeState extends State<Home> {
       _toDoController.text = "";
       newTodo["ok"] = false;
       _toDoList.add(newTodo);
+      _saveData();
     });
   }
 
